@@ -17,12 +17,18 @@ public class Person extends Thread {
     @Override
     public void run() {
         try {
-            carPark.takeSpace(car.getSpace());
+            carPark.enterCarpark(car);
+//            new Thread(() -> {
+//                SwingUtilities.invokeLater(() -> carPark.updateView());
+//                try{
+//                    Thread.sleep(100);
+//                }catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }).start();
+
             sleep((long) 1000 * random.nextInt(15));
-            if (car.isUnlucky()) {
-                sleep((long) 1000 * random.nextInt(5));
-            }
-            carPark.leaveSpace(car.getSpace());
+            carPark.leaveSpace(car);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

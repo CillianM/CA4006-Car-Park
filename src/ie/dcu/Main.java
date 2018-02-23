@@ -8,6 +8,7 @@ public class Main {
         CarPark carPark = new CarPark();
         for (int i = 0; i < TOTAL_CARS; i++) {
             new Person(carPark, i).start();
+
         }
     }
 }
