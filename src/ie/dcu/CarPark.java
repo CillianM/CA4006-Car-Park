@@ -1,12 +1,16 @@
 package ie.dcu;
 
+import javax.swing.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CarPark {
 
-    private int spaces = 1000;
+    private BarChart barChart;
+    private int outside;
+    private int gone;
+    private int spaces = 50;
     private int entrances = 3;
     private int exits = 3;
     private final Lock exitLock = new ReentrantLock();
@@ -19,25 +23,45 @@ public class CarPark {
     private final Condition exitsNotFull = exitLock.newCondition();
     private final Condition exitsNotEmpty = exitLock.newCondition();
 
-    CarPark() {
+    CarPark(BarChart barChart, int outside) {
+        this.barChart = barChart;
+        this.outside = outside;
+        gone = 0;
     }
 
     public void enterCarpark(Car car) {
         entranceLock.lock();
         try {
             while (entrances == 0) {
-                System.out.println(Thread.currentThread().getName() + " : No free entrances, waiting");
+                //System.out.println(Thread.currentThread().getName() + " : No free entrances, waiting");
                 entrancesNotFull.await();
             }
             entrances--;
+            outside--;
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setGoingIn(outside);
+                    barChart.setEntrance(entrances);
+                    barChart.update();
+                }
+            });
 
             entrancesNotEmpty.signalAll();
-            System.out.println(Thread.currentThread().getName() + " using entrance, " + entrances + " entrances left");
+            //System.out.println(Thread.currentThread().getName() + " using entrance, " + entrances + " entrances left");
             awaitSpace(car);
             entrances++;
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setEntrance(entrances);
+                    barChart.update();
+                }
+            });
 
             entrancesNotFull.signalAll();
-            System.out.println(Thread.currentThread().getName() + " entered carpark ");
+            //System.out.println(Thread.currentThread().getName() + " entered carpark ");
             entranceLock.unlock();
             takeSpace(car);
 
@@ -51,17 +75,33 @@ public class CarPark {
         exitLock.lock();
         try {
             while (exits == 0) {
-                System.out.println(Thread.currentThread().getName() + " : No free exits, waiting");
+                //System.out.println(Thread.currentThread().getName() + " : No free exits, waiting");
                 exitsNotFull.await();
             }
             exits--;
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setExit(exits);
+                    barChart.update();
+                }
+            });
 
             exitsNotEmpty.signalAll();
-            System.out.println(Thread.currentThread().getName() + " using exit, " + exits + " exits left");
+            //System.out.println(Thread.currentThread().getName() + " using exit, " + exits + " exits left");
             exits++;
+            gone++;
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setGone(gone);
+                    barChart.setExit(exits);
+                    barChart.update();
+                }
+            });
 
             exitsNotFull.signalAll();
-            System.out.println(Thread.currentThread().getName() + " left carpark ");
+            //System.out.println(Thread.currentThread().getName() + " left carpark ");
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -75,7 +115,7 @@ public class CarPark {
         lock.lock();
         try {
             while (spaces <= car.getSpace()) {
-                System.out.println(Thread.currentThread().getName() + " : Not enough spaces");
+                //System.out.println(Thread.currentThread().getName() + " : Not enough spaces");
                 carparkNotFull.await();
             }
 
@@ -90,8 +130,15 @@ public class CarPark {
         lock.lock();
         try {
             spaces -= car.getSpace();
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setParked(spaces);
+                    barChart.update();
+                }
+            });
 
-            System.out.println(Thread.currentThread().getName() + " took a space, " + spaces + " spaces left");
+            //System.out.println(Thread.currentThread().getName() + " took a space, " + spaces + " spaces left");
             carparkNotEmpty.signalAll();
 
         } finally {
@@ -104,8 +151,15 @@ public class CarPark {
         lock.lock();
         try {
             spaces += car.getSpace();
+            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    barChart.setParked(spaces);
+                    barChart.update();
+                }
+            });
 
-            System.out.println(Thread.currentThread().getName() + " left their space, " + spaces + " spaces left");
+            //System.out.println(Thread.currentThread().getName() + " left their space, " + spaces + " spaces left");
             carparkNotFull.signalAll();
             car.setGotToPark(true);
             leaveCarpark(car);
