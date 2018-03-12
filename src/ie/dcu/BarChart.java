@@ -2,75 +2,85 @@ package ie.dcu;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class BarChart extends JPanel {
-    private double[] values;
+    private Map<Color, Integer> bars =
+            new LinkedHashMap<>();
 
-    private String[] names;
+    private int goingIn;
+    private int entrance;
+    private int parked;
+    private int exit;
+    private int gone;
+    private int max;
 
-    private String title;
-
-    public BarChart(double[] v, String[] n, String t) {
-        names = n;
-        values = v;
-        title = t;
+    BarChart(int total) {
+        max = total;
+        goingIn = total;
+        entrance = parked = exit = gone = 0;
+        addBar(Color.lightGray, total);
+        addBar(Color.green, 0);
+        addBar(Color.cyan, total);
+        addBar(Color.red, 0);
+        addBar(Color.black, 0);
     }
 
-    public void paintComponent(Graphics g) {
+    private void addBar(Color color, int value) {
+        bars.put(color, value);
+        repaint();
+    }
+
+    public void update() {
+        removeAll();
+        bars.clear();
+        addBar(Color.lightGray, goingIn);
+        addBar(Color.green, entrance);
+        addBar(Color.cyan, parked);
+        addBar(Color.red, exit);
+        addBar(Color.black, gone);
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (values == null || values.length == 0)
-            return;
-        double minValue = 0;
-        double maxValue = 0;
-        for (int i = 0; i < values.length; i++) {
-            if (minValue > values[i])
-                minValue = values[i];
-            if (maxValue < values[i])
-                maxValue = values[i];
-        }
-
-        Dimension d = getSize();
-        int clientWidth = d.width;
-        int clientHeight = d.height;
-        int barWidth = clientWidth / values.length;
-
-        Font titleFont = new Font("SansSerif", Font.BOLD, 20);
-        FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
-        Font labelFont = new Font("SansSerif", Font.PLAIN, 10);
-        FontMetrics labelFontMetrics = g.getFontMetrics(labelFont);
-
-        int titleWidth = titleFontMetrics.stringWidth(title);
-        int y = titleFontMetrics.getAscent();
-        int x = (clientWidth - titleWidth) / 2;
-        g.setFont(titleFont);
-        g.drawString(title, x, y);
-
-        int top = titleFontMetrics.getHeight();
-        int bottom = labelFontMetrics.getHeight();
-        if (maxValue == minValue)
-            return;
-        double scale = (clientHeight - top - bottom) / (maxValue - minValue);
-        y = clientHeight - labelFontMetrics.getDescent();
-        g.setFont(labelFont);
-
-        for (int i = 0; i < values.length; i++) {
-            int valueX = i * barWidth + 1;
-            int valueY = top;
-            int height = (int) (values[i] * scale);
-            if (values[i] >= 0)
-                valueY += (int) ((maxValue - values[i]) * scale);
-            else {
-                valueY += (int) (maxValue * scale);
-                height = -height;
-            }
-
-            g.setColor(Color.red);
-            g.fillRect(valueX, valueY, barWidth - 2, height);
+        int width = (getWidth() / bars.size()) - 2;
+        int x = 1;
+        for (Color color : bars.keySet()) {
+            int value = bars.get(color);
+            int height = (int) ((getHeight() - 5) * ((double) value / max));
+            g.setColor(color);
+            g.fillRect(x, getHeight() - height, width, height);
             g.setColor(Color.black);
-            g.drawRect(valueX, valueY, barWidth - 2, height);
-            int labelWidth = labelFontMetrics.stringWidth(names[i]);
-            x = i * barWidth + (barWidth - labelWidth) / 2;
-            g.drawString(names[i], x, y);
+            g.drawRect(x, getHeight() - height, width, height);
+            x += (width + 2);
         }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(800, 800);
+    }
+
+    public synchronized void setGoingIn(int goingIn) {
+        this.goingIn = goingIn;
+    }
+
+    public synchronized void setEntrance(int entrance) {
+        this.entrance = entrance;
+    }
+
+    public synchronized void setParked(int parked) {
+        this.parked = parked;
+    }
+
+    public synchronized void setExit(int exit) {
+        this.exit = exit;
+    }
+
+    public synchronized void setGone(int gone) {
+        this.gone = gone;
     }
 }
