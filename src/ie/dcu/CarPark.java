@@ -29,6 +29,10 @@ public class CarPark {
         gone = 0;
     }
 
+    public void printStatus(){
+        System.out.println("Outside: " + outside + " " + "Entrances: " + entrances + " " + "Spaces: " + spaces + " " + "Exits: " + exits + " " + "Gone: " + gone);
+    }
+
     public void enterCarpark(Car car) {
         entranceLock.lock();
         try {
@@ -38,7 +42,7 @@ public class CarPark {
             }
             entrances--;
             outside--;
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -52,7 +56,7 @@ public class CarPark {
             //System.out.println(Thread.currentThread().getName() + " using entrance, " + entrances + " entrances left");
             awaitSpace(car);
             entrances++;
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     barChart.setEntrance(entrances);
@@ -79,7 +83,7 @@ public class CarPark {
                 exitsNotFull.await();
             }
             exits--;
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     barChart.setExit(exits);
@@ -91,7 +95,7 @@ public class CarPark {
             //System.out.println(Thread.currentThread().getName() + " using exit, " + exits + " exits left");
             exits++;
             gone++;
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     barChart.setGone(gone);
@@ -130,10 +134,10 @@ public class CarPark {
         lock.lock();
         try {
             spaces -= car.getSpace();
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    barChart.setParked(spaces);
+                    barChart.setSpacesAvailable(spaces);
                     barChart.update();
                 }
             });
@@ -151,10 +155,10 @@ public class CarPark {
         lock.lock();
         try {
             spaces += car.getSpace();
-            System.out.println(outside + " " + entrances + " " + spaces + " " + exits + " " + gone);
+            printStatus();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    barChart.setParked(spaces);
+                    barChart.setSpacesAvailable(spaces);
                     barChart.update();
                 }
             });
