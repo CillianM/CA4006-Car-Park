@@ -15,7 +15,7 @@ public class Car {
         }
     }
 
-    public double getSpace() {
+    public int getSpace() {
         return space;
     }
 
