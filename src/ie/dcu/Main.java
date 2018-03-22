@@ -11,12 +11,18 @@ public class Main extends JPanel {
         BarChart chart = new BarChart(TOTAL_CARS);
 
         frame.getContentPane().add(chart);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         CarPark carPark = new CarPark(chart, TOTAL_CARS);
         for (int i = 0; i < TOTAL_CARS; i++) {
-            new Person(carPark, i).start();
+            new Person(carPark).start();
 
         }
     }

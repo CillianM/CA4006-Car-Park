@@ -7,10 +7,9 @@ public class Person extends Thread {
     private Car car;
     private Random random;
 
-    public Person(CarPark carPark, int id) {
-        super("Person_" + id);
+    Person(CarPark carPark) {
         this.carPark = carPark;
-        car = new Car(id);
+        car = new Car();
         random = new Random();
     }
 
@@ -18,19 +17,9 @@ public class Person extends Thread {
     public void run() {
         try {
             carPark.enterCarpark(car);
-//            new Thread(() -> {
-//                SwingUtilities.invokeLater(() -> carPark.updateView());
-//                try{
-//                    Thread.sleep(100);
-//                }catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }).start();
-
             sleep((long) 1000 * random.nextInt(15));
             carPark.leaveSpace(car);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

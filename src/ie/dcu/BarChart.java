@@ -49,7 +49,6 @@ public class BarChart extends JPanel {
 
     public void update() {
         removeAll();
-        //bars.clear();
         updateBar("Going In", Color.lightGray, goingIn);
         updateBar("Entrance", Color.green, entrance);
         updateBar("Total In CarPark", Color.blue, totalInCarPark);
