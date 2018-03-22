@@ -8,15 +8,16 @@ public class CarPark {
     private BarChart barChart;
     private int outside;
     private int gone;
-    private int spaces = 50;
+    private int spaces;
     private int lookingForSpace = 0;
     private int totalInCarPark = 0;
     private int entrances = 3;
     private int exits = 3;
 
-    CarPark(BarChart barChart, int outside) {
+    CarPark(BarChart barChart, int outside, int spaces) {
         this.barChart = barChart;
         this.outside = outside;
+        this.spaces = spaces;
         gone = 0;
     }
 

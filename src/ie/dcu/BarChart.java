@@ -18,14 +18,15 @@ public class BarChart extends JPanel {
     private int gone;
     private int max;
 
-    BarChart(int total) {
-        max = total;
-        goingIn = total;
-        entrance = totalInCarPark = lookingForSpace= spacesAvailable = exit = gone = 0;
-        addBar("Going In", Color.lightGray, total);
+    BarChart(int totalCars, int totalSpaces) {
+        max = totalCars;
+        goingIn = totalCars;
+        spacesAvailable = totalSpaces;
+        entrance = totalInCarPark = lookingForSpace = exit = gone = 0;
+        addBar("Going In", Color.lightGray, goingIn);
         addBar("Entrance", Color.green, 0);
         addBar("Total In CarPark", Color.blue, 0);
-        addBar("Spaces Available",Color.cyan, total);
+        addBar("Spaces Available", Color.cyan, spacesAvailable);
         addBar("Looking For Space",Color.orange, 0);
         addBar("Exit",Color.red, 0);
         addBar("Gone",Color.black, 0);
