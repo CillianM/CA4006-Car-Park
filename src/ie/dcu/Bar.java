@@ -1,17 +1,18 @@
 package ie.dcu;
 
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Bar {
     private String label;
     private Color color;
-    private int count;
+    private AtomicInteger count;
 
     Bar(String label, Color color){
-        this(label,color,0);
+        this(label,color, new AtomicInteger(0));
     }
 
-    Bar(String label, Color color, int count){
+    Bar(String label, Color color, AtomicInteger count){
         setLabel(label);
         setColor(color);
         setCount(count);
@@ -25,7 +26,7 @@ public class Bar {
         this.color = color;
     }
 
-    public void setCount(int count){
+    public void setCount(AtomicInteger count){
         this.count = count;
     }
 
@@ -38,6 +39,6 @@ public class Bar {
     }
 
     public int getCount() {
-        return this.count;
+        return this.count.get();
     }
 }
