@@ -55,7 +55,7 @@ public class CarPark {
             barChart.setEntrance(entrances);
             barChart.update();
         });
-        notifyAll();
+        notify();
 
 
         takeSpace(car);
@@ -83,7 +83,7 @@ public class CarPark {
             barChart.setExit(exits);
             barChart.update();
         });
-        notifyAll();
+        notify();
     }
 
     private synchronized void takeSpace(Car car) throws InterruptedException, InvocationTargetException {
@@ -111,7 +111,7 @@ public class CarPark {
             barChart.setSpacesAvailable(spaces);
             barChart.update();
         });
-        notifyAll();
+        notify();
 
         car.setGotToPark(true);
         leaveCarpark(car);
