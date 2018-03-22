@@ -1,6 +1,7 @@
 package ie.dcu;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -54,7 +55,7 @@ public class CarPark {
             lookingForSpace++;
             printStatus();
 
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setGoingIn(outside);
                     barChart.setTotalInCarPark(totalInCarPark);
@@ -69,7 +70,7 @@ public class CarPark {
             awaitSpace(car);
             entrances++;
             printStatus();
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setEntrance(entrances);
                     barChart.update();
@@ -82,7 +83,7 @@ public class CarPark {
             takeSpace(car);
 
 
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -96,7 +97,7 @@ public class CarPark {
             }
             exits--;
             printStatus();
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setExit(exits);
                     barChart.update();
@@ -110,7 +111,7 @@ public class CarPark {
             gone++;
 
             printStatus();
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setGone(gone);
                     barChart.setTotalInCarPark(totalInCarPark);
@@ -122,7 +123,7 @@ public class CarPark {
             exitsNotFull.signalAll();
             //System.out.println(Thread.currentThread().getName() + " left carpark ");
 
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | InvocationTargetException e) {
             e.printStackTrace();
         } finally {
             exitLock.unlock();
@@ -151,7 +152,7 @@ public class CarPark {
             spaces -= car.getSpace();
             lookingForSpace--;
             printStatus();
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setSpacesAvailable(spaces);
                     barChart.setLookingForSpace(lookingForSpace);
@@ -162,6 +163,8 @@ public class CarPark {
             //System.out.println(Thread.currentThread().getName() + " took a space, " + spaces + " spaces left");
             carparkNotEmpty.signalAll();
 
+        } catch (InterruptedException | InvocationTargetException e) {
+            e.printStackTrace();
         } finally {
             lock.unlock();
         }
@@ -173,7 +176,7 @@ public class CarPark {
         try {
             spaces += car.getSpace();
             printStatus();
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     barChart.setSpacesAvailable(spaces);
                     barChart.update();
@@ -184,6 +187,8 @@ public class CarPark {
             carparkNotFull.signalAll();
             car.setGotToPark(true);
             leaveCarpark(car);
+        } catch (InterruptedException | InvocationTargetException e) {
+            e.printStackTrace();
         } finally {
             lock.unlock();
         }
