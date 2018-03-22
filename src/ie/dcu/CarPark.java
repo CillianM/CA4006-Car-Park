@@ -1,6 +1,7 @@
 package ie.dcu;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 
 public class CarPark {
 
@@ -29,7 +30,7 @@ public class CarPark {
                 "Gone: " + gone);
     }
 
-    public synchronized void enterCarpark(Car car) throws InterruptedException {
+    public synchronized void enterCarpark(Car car) throws InterruptedException, InvocationTargetException {
         while (entrances == 0) {
             wait();
         }
@@ -39,7 +40,7 @@ public class CarPark {
         lookingForSpace++;
         printStatus();
 
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setGoingIn(outside);
             barChart.setTotalInCarPark(totalInCarPark);
             barChart.setLookingForSpace(lookingForSpace);
@@ -50,7 +51,7 @@ public class CarPark {
         wait(2000);
         entrances++;
         printStatus();
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setEntrance(entrances);
             barChart.update();
         });
@@ -60,13 +61,13 @@ public class CarPark {
         takeSpace(car);
     }
 
-    private synchronized void leaveCarpark(Car car) throws InterruptedException {
+    private synchronized void leaveCarpark(Car car) throws InterruptedException, InvocationTargetException {
         while (exits == 0) {
             wait();
         }
         exits--;
         printStatus();
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setExit(exits);
             barChart.update();
         });
@@ -76,7 +77,7 @@ public class CarPark {
         totalInCarPark--;
         gone++;
         printStatus();
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setGone(gone);
             barChart.setTotalInCarPark(totalInCarPark);
             barChart.setExit(exits);
@@ -85,7 +86,7 @@ public class CarPark {
         notifyAll();
     }
 
-    private synchronized void takeSpace(Car car) throws InterruptedException {
+    private synchronized void takeSpace(Car car) throws InterruptedException, InvocationTargetException {
         while (spaces < car.getSpace()) {
             car.setAttempts(car.getAttempts() - 1);
             if (car.getAttempts() <= 0) {
@@ -96,17 +97,17 @@ public class CarPark {
         spaces -= car.getSpace();
         lookingForSpace--;
         printStatus();
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setSpacesAvailable(spaces);
             barChart.setLookingForSpace(lookingForSpace);
             barChart.update();
         });
     }
 
-    synchronized void leaveSpace(Car car) throws InterruptedException {
+    synchronized void leaveSpace(Car car) throws InterruptedException, InvocationTargetException {
         spaces += car.getSpace();
         printStatus();
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             barChart.setSpacesAvailable(spaces);
             barChart.update();
         });

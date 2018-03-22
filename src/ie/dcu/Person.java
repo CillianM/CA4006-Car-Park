@@ -1,5 +1,6 @@
 package ie.dcu;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
 
 public class Person extends Thread {
@@ -19,7 +20,7 @@ public class Person extends Thread {
             carPark.enterCarpark(car);
             sleep((long) 1000 * random.nextInt(15));
             carPark.leaveSpace(car);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
