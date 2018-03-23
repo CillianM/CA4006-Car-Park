@@ -13,6 +13,7 @@ public class BarChart extends JPanel {
     private AtomicInteger goingIn;
     private AtomicInteger entrance;
     private AtomicInteger spacesAvailable;
+    private AtomicInteger doubleParked;
     private AtomicInteger lookingForSpace;
     private AtomicInteger totalInCarPark;
     private AtomicInteger exit;
@@ -23,6 +24,7 @@ public class BarChart extends JPanel {
         max = totalCars;
         goingIn = new AtomicInteger(totalCars);
         spacesAvailable = new AtomicInteger(totalSpaces);
+        doubleParked = new AtomicInteger(0);
         entrance = new AtomicInteger(0);
         totalInCarPark = new AtomicInteger(0);
         lookingForSpace = new AtomicInteger(0);
@@ -32,6 +34,7 @@ public class BarChart extends JPanel {
         addBar("Entrances Free", Color.green, entrance);
         addBar("Total In CarPark", Color.blue, totalInCarPark);
         addBar("Spaces Free", Color.cyan, spacesAvailable);
+        addBar("Double Parked", Color.magenta, doubleParked);
         addBar("Looking For Space",Color.orange, lookingForSpace);
         addBar("Exits Free",Color.red, exit);
         addBar("Gone",Color.black, gone);
@@ -59,6 +62,7 @@ public class BarChart extends JPanel {
         updateBar("Entrances Free", Color.green, entrance);
         updateBar("Total In CarPark", Color.blue, totalInCarPark);
         updateBar("Spaces Free", Color.cyan, spacesAvailable);
+        updateBar("Double Parked", Color.magenta, doubleParked);
         updateBar("Looking For Space",Color.orange, lookingForSpace);
         updateBar("Exits Free", Color.red, exit);
         updateBar("Gone", Color.black, gone);
@@ -70,14 +74,16 @@ public class BarChart extends JPanel {
         super.paintComponent(g);
         int width = (getWidth() / bars.size()) - 2;
         int x = 1;
+        int y;
         for (Bar bar : bars.values()) {
             int value = bar.getCount();
             int height = (int) ((getHeight() - 10) * ((double) value / max));
+            y = getHeight() - height;
             g.setColor(bar.getColor());
-            g.fillRect(x, getHeight() - height, width, height);
+            g.fillRect(x, y, width, height);
             g.setColor(Color.black);
-            g.drawString(bar.getLabel() + ": " + bar.getCount(), x, getHeight()-height -1);
-            g.drawRect(x, getHeight() - height, width, height);
+            g.drawString(bar.getLabel() + ": " + bar.getCount(), x,y - 1);
+            g.drawRect(x, y, width, height);
             x += (width + 10);
         }
     }
@@ -97,6 +103,10 @@ public class BarChart extends JPanel {
 
     public synchronized void setSpacesAvailable(AtomicInteger spacesAvailable) {
         this.spacesAvailable = spacesAvailable;
+    }
+
+    public synchronized void setDoubleParked(AtomicInteger doubleParked){
+        this.doubleParked = doubleParked;
     }
 
     public synchronized void setLookingForSpace(AtomicInteger lookingForSpace) {
