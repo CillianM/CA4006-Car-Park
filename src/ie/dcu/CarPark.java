@@ -10,6 +10,7 @@ public class CarPark {
     private AtomicInteger outside;
     private AtomicInteger gone = new AtomicInteger(0);
     private AtomicInteger spaces;
+    private AtomicInteger doubleParked = new AtomicInteger(0);
     private AtomicInteger lookingForSpace = new AtomicInteger(0);
     private AtomicInteger totalInCarPark = new AtomicInteger(0);
     private AtomicInteger entrances = new AtomicInteger(3);
@@ -26,6 +27,7 @@ public class CarPark {
                 "Entrances: " + entrances + " " +
                 "Total in CarPark: " + totalInCarPark + " " +
                 "Spaces: " + spaces + " " +
+                "Double Parked: " + doubleParked + " " +
                 "Looking For Spaces: " + lookingForSpace + " " +
                 "Exits: " + exits + " " +
                 "Gone: " + gone);
@@ -96,10 +98,14 @@ public class CarPark {
             wait();
         }
         spaces.set(spaces.get() - car.getSpace());
+        if(car.getSpace() > 1){
+            doubleParked.incrementAndGet();
+        }
         lookingForSpace.decrementAndGet();
         printStatus();
         SwingUtilities.invokeAndWait(() -> {
             barChart.setSpacesAvailable(spaces);
+            barChart.setDoubleParked(doubleParked);
             barChart.setLookingForSpace(lookingForSpace);
             barChart.update();
         });
@@ -107,9 +113,13 @@ public class CarPark {
 
     synchronized void leaveSpace(Car car) throws InterruptedException, InvocationTargetException {
         spaces.set(spaces.get() + car.getSpace());
+        if(car.getSpace() > 1){
+            doubleParked.decrementAndGet();
+        }
         printStatus();
         SwingUtilities.invokeAndWait(() -> {
             barChart.setSpacesAvailable(spaces);
+            barChart.setDoubleParked(doubleParked);
             barChart.update();
         });
         notify();
