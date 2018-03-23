@@ -20,15 +20,15 @@ public class BarChart extends JPanel {
     private AtomicInteger gone;
     private int max; //Value does not change after being set once, no need for atomic
 
-    BarChart(int totalCars, int totalSpaces) {
+    BarChart(int totalCars, int totalSpaces, int entrances, int exits) {
         max = totalCars;
         goingIn = new AtomicInteger(totalCars);
         spacesAvailable = new AtomicInteger(totalSpaces);
         doubleParked = new AtomicInteger(0);
-        entrance = new AtomicInteger(0);
+        entrance = new AtomicInteger(entrances);
         totalInCarPark = new AtomicInteger(0);
         lookingForSpace = new AtomicInteger(0);
-        exit = new AtomicInteger(0);
+        exit = new AtomicInteger(exits);
         gone = new AtomicInteger(0);
         addBar("Going In", Color.lightGray, goingIn);
         addBar("Entrances Free", Color.green, entrance);
