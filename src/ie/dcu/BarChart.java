@@ -33,9 +33,9 @@ public class BarChart extends JPanel {
         addBar("Going In", Color.lightGray, goingIn);
         addBar("Entrances Free", Color.green, entrance);
         addBar("Total In CarPark", Color.blue, totalInCarPark);
+        addBar("Looking ", Color.orange, lookingForSpace);
         addBar("Spaces Free", Color.cyan, spacesAvailable);
         addBar("Double Parked", Color.magenta, doubleParked);
-        addBar("Looking For Space",Color.orange, lookingForSpace);
         addBar("Exits Free",Color.red, exit);
         addBar("Gone",Color.black, gone);
     }
@@ -63,7 +63,7 @@ public class BarChart extends JPanel {
         updateBar("Total In CarPark", Color.blue, totalInCarPark);
         updateBar("Spaces Free", Color.cyan, spacesAvailable);
         updateBar("Double Parked", Color.magenta, doubleParked);
-        updateBar("Looking For Space",Color.orange, lookingForSpace);
+        updateBar("Looking ", Color.orange, lookingForSpace);
         updateBar("Exits Free", Color.red, exit);
         updateBar("Gone", Color.black, gone);
         repaint();
@@ -75,16 +75,36 @@ public class BarChart extends JPanel {
         int width = (getWidth() / bars.size()) - 2;
         int x = 1;
         int y;
+        int spacesAvailableHeight = 0;
+        int currentSpacesAvailable = 0;
         for (Bar bar : bars.values()) {
-            int value = bar.getCount();
-            int height = (int) ((getHeight() - 10) * ((double) value / max));
-            y = getHeight() - height;
-            g.setColor(bar.getColor());
-            g.fillRect(x, y, width, height);
-            g.setColor(Color.black);
-            g.drawString(bar.getLabel() + ": " + bar.getCount(), x,y - 1);
-            g.drawRect(x, y, width, height);
-            x += (width + 10);
+            if (bar.getColor().equals(Color.magenta)) { //Adding the bar for double spaces on top of the spaces available bar
+                x -= (width + 10); //reset the x value back
+                int value = bar.getCount();
+                int height = (int) ((getHeight() - 10) * ((double) value / max));
+                y = (getHeight() - (height + spacesAvailableHeight));
+                g.setColor(bar.getColor());
+                g.fillRect(x, y, width, height);
+                g.setColor(Color.black);
+                g.drawString("FS - DP : " + currentSpacesAvailable + " - " + bar.getCount(), (x), y - 1);
+                g.drawRect(x, y, width, height);
+                x += (width + 10);
+            } else {
+                int value = bar.getCount();
+                int height = (int) ((getHeight() - 10) * ((double) value / max));
+                if (bar.getColor().equals(Color.cyan)) {
+                    spacesAvailableHeight = height;
+                    currentSpacesAvailable = bar.getCount();
+                }
+                y = getHeight() - height;
+                g.setColor(bar.getColor());
+                g.fillRect(x, y, width, height);
+                g.setColor(Color.black);
+                if (!bar.getColor().equals(Color.cyan))
+                    g.drawString(bar.getLabel() + ": " + bar.getCount(), x, y - 1);
+                g.drawRect(x, y, width, height);
+                x += (width + 10);
+            }
         }
     }
 
