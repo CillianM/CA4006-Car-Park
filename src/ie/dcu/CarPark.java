@@ -12,11 +12,12 @@ public class CarPark {
 
     private BarChart barChart;
     private AtomicInteger outside;
-    private AtomicInteger gone = new AtomicInteger(0);
+    private AtomicInteger undelayedExit = new AtomicInteger(0);
+    private AtomicInteger delayedExit = new AtomicInteger(0);
     private AtomicInteger spaces;
     private AtomicInteger doubleParked = new AtomicInteger(0);
     private AtomicInteger singleParked = new AtomicInteger(0);
-    private AtomicInteger lookingForSpace = new AtomicInteger(0);
+    private AtomicInteger seekingSpace = new AtomicInteger(0);
     private AtomicInteger totalInCarPark = new AtomicInteger(0);
     private AtomicInteger entrances;
     private AtomicInteger exits;
@@ -47,22 +48,24 @@ public class CarPark {
                 "Spaces: " + spaces + " " +
                 "Double Parked: " + doubleParked + " " +
                 "Single Parked: " + singleParked + " " +
-                "Looking For Spaces: " + lookingForSpace + " " +
+                "Seeking Spaces: " + seekingSpace + " " +
                 "Exits: " + exits + " " +
-                "Gone: " + gone);
+                "Undelayed Exit: " + undelayedExit + " " +
+                "Delayed Exit: " + delayedExit);
     }
 
     private synchronized void updateGUI() throws InvocationTargetException, InterruptedException {
         SwingUtilities.invokeAndWait(() -> {
             barChart.setGoingIn(outside);
-            barChart.setGone(gone);
+            barChart.setUndelayedExit(undelayedExit);
+            barChart.setDelayedExit(delayedExit);
             barChart.setSpacesAvailable(spaces);
             barChart.setDoubleParked(doubleParked);
             barChart.setSingleParked(singleParked);
-            barChart.setLookingForSpace(lookingForSpace);
+            barChart.setSeekingSpace(seekingSpace);
             barChart.setTotalInCarPark(totalInCarPark);
-            barChart.setEntrance(entrances);
-            barChart.setExit(exits);
+            barChart.setEntrancesFree(entrances);
+            barChart.setExitsFree(exits);
             barChart.update();
         });
     }
@@ -77,7 +80,7 @@ public class CarPark {
         totalInCarPark.incrementAndGet();
         printStatus();
         updateGUI();
-        lookingForSpace.incrementAndGet();
+        seekingSpace.incrementAndGet();
         entrances.incrementAndGet();
         printStatus();
         updateGUI();
@@ -86,7 +89,7 @@ public class CarPark {
         takeSpace(car);
     }
 
-    private long calculateTimeToLeaveCarpark(Car car){
+    private long calculateTimeToLeaveCarPark(Car car){
         if(car.isUnlucky()){
             //This simulates the driver taking a longer time than usual to leave,
             //for example there is an issue with their ticket and they have to
@@ -103,10 +106,15 @@ public class CarPark {
         exits.decrementAndGet();
         printStatus();
         updateGUI();
-        Thread.sleep(calculateTimeToLeaveCarpark(car)); //make using the exit non-instantaneous
+        long timeToLeaveCarPark = calculateTimeToLeaveCarPark(car);
+        Thread.sleep(timeToLeaveCarPark); //make using the exit non-instantaneous
         exits.incrementAndGet();
         totalInCarPark.decrementAndGet();
-        gone.incrementAndGet();
+        if(timeToLeaveCarPark > BARRIER_TRAVEL_TIME){
+            delayedExit.incrementAndGet();
+        } else {
+            undelayedExit.incrementAndGet();
+        }
         printStatus();
         updateGUI();
         exitSem.release();
@@ -121,6 +129,8 @@ public class CarPark {
 //            wait();
 //        }
 
+        //todo use tryAcquire to simulate giving up
+
         spacesSem.acquire(car.getSpace());
         spaces.set(spaces.get() - car.getSpace());
         if(car.getSpace() > 1){
@@ -128,7 +138,7 @@ public class CarPark {
         } else {
             singleParked.incrementAndGet();
         }
-        lookingForSpace.decrementAndGet();
+        seekingSpace.decrementAndGet();
         printStatus();
         updateGUI();
     }
