@@ -7,48 +7,62 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BarChart extends JPanel {
+    private final int TOTAL_SPACES;
+    private final int TOTAL_CARS;
+
     private Map<String, Bar> bars =
             new LinkedHashMap<>();
+    private Map<String, Bar> spacesMultiBar =
+            new LinkedHashMap<>();
+
 
     private AtomicInteger goingIn;
     private AtomicInteger entrance;
     private AtomicInteger spacesAvailable;
     private AtomicInteger doubleParked;
+    private AtomicInteger singleParked;
     private AtomicInteger lookingForSpace;
     private AtomicInteger totalInCarPark;
     private AtomicInteger exit;
     private AtomicInteger gone;
-    private int max; //Value does not change after being set once, no need for atomic
+
 
     BarChart(int totalCars, int totalSpaces, int entrances, int exits) {
-        max = totalCars;
-        goingIn = new AtomicInteger(totalCars);
-        spacesAvailable = new AtomicInteger(totalSpaces);
-        doubleParked = new AtomicInteger(0);
-        entrance = new AtomicInteger(entrances);
-        totalInCarPark = new AtomicInteger(0);
-        lookingForSpace = new AtomicInteger(0);
-        exit = new AtomicInteger(exits);
-        gone = new AtomicInteger(0);
+        this.TOTAL_CARS = totalCars;
+        this.TOTAL_SPACES = totalSpaces;
+        this.goingIn = new AtomicInteger(totalCars);
+        this.spacesAvailable = new AtomicInteger(totalSpaces);
+        this.singleParked = new AtomicInteger(0);
+        this.doubleParked = new AtomicInteger(0);
+        this.entrance = new AtomicInteger(entrances);
+        this.totalInCarPark = new AtomicInteger(0);
+        this.lookingForSpace = new AtomicInteger(0);
+        this.exit = new AtomicInteger(exits);
+        this.gone = new AtomicInteger(0);
         addBar("Going In", Color.lightGray, goingIn);
         addBar("Entrances Free", Color.green, entrance);
         addBar("Total In CarPark", Color.blue, totalInCarPark);
-        addBar("Spaces Free", Color.cyan, spacesAvailable);
-        addBar("Double Parked", Color.magenta, doubleParked);
+        addBar("Spaces Free", Color.cyan, spacesAvailable, spacesMultiBar);
+        addBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
+        addBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
         addBar("Looking For Space",Color.orange, lookingForSpace);
         addBar("Exits Free",Color.red, exit);
         addBar("Gone",Color.black, gone);
     }
 
-    private void addBar(String label, Color color, AtomicInteger count) {
-        bars.put(label, new Bar(label,color, count));
+    private void addBar(String label, Color color, AtomicInteger count, Map<String, Bar> barMap){
+        barMap.put(label, new Bar(label,color, count));
         repaint();
     }
 
-    private void updateBar(String label, Color color, AtomicInteger count) {
-        Bar bar = bars.get(label);
+    private void addBar(String label, Color color, AtomicInteger count) {
+        addBar(label,color, count, bars);
+    }
+
+    private void updateBar(String label, Color color, AtomicInteger count, Map<String, Bar> barMap){
+        Bar bar = barMap.get(label);
         if(bar == null){
-            addBar(label, color, count);
+            addBar(label, color, count, barMap);
         } else {
             bar.setColor(color);
             bar.setCount(count);
@@ -56,35 +70,68 @@ public class BarChart extends JPanel {
         }
     }
 
+    private void updateBar(String label, Color color, AtomicInteger count) {
+        updateBar(label,color,count,bars);
+    }
+
     public void update() {
         removeAll();
         updateBar("Going In", Color.lightGray, goingIn);
         updateBar("Entrances Free", Color.green, entrance);
         updateBar("Total In CarPark", Color.blue, totalInCarPark);
-        updateBar("Spaces Free", Color.cyan, spacesAvailable);
-        updateBar("Double Parked", Color.magenta, doubleParked);
+        updateBar("Spaces Free", Color.cyan, spacesAvailable, spacesMultiBar);
+        updateBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
+        updateBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
         updateBar("Looking For Space",Color.orange, lookingForSpace);
         updateBar("Exits Free", Color.red, exit);
         updateBar("Gone", Color.black, gone);
         repaint();
     }
 
+    private int getBarHeight(Bar bar, int windowHeight, int fontHeight){
+        return (int) ((windowHeight - (2 * fontHeight)) * ((double) bar.getCount() / TOTAL_CARS));
+    }
+
+    private void drawBar(Graphics g, Bar bar, int x, int y, int width, int barHeight){
+        g.setColor(bar.getColor());
+        g.fillRect(x, y, width, barHeight);
+        g.setColor(Color.black);
+        g.drawString(bar.getLabel() + ": " + bar.getCount(), x, y); //getHeight() - fontHeight
+        g.drawRect(x, y, width, barHeight);
+    }
+
+    private void drawMultiBar(Graphics g, Map<String, Bar> barMap,
+                              int x, int windowHeight, int width, int fontHeight){
+        int oldHeight = windowHeight;
+        for (Bar multiBar : barMap.values()) {
+            int barHeight = getBarHeight(multiBar, windowHeight, fontHeight);
+            int y = oldHeight - barHeight - fontHeight;
+            drawBar(g, multiBar, x, y, width, barHeight);
+            oldHeight = y;
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int width = (getWidth() / bars.size()) - 2;
+        int width = (getWidth() / (bars.size() + 1) - 2);
+        int xOffset = width + 10;
+        int windowHeight = getHeight();
+        int fontHeight = g.getFontMetrics().getHeight();
         int x = 1;
         int y;
+        int barHeight;
+
+        //Draw spaces multibar
+        drawMultiBar(g, spacesMultiBar, x, windowHeight, width, fontHeight);
+        x += xOffset;
+
+        //Draw the single bars
         for (Bar bar : bars.values()) {
-            int value = bar.getCount();
-            int height = (int) ((getHeight() - 10) * ((double) value / max));
-            y = getHeight() - height;
-            g.setColor(bar.getColor());
-            g.fillRect(x, y, width, height);
-            g.setColor(Color.black);
-            g.drawString(bar.getLabel() + ": " + bar.getCount(), x,y - 1);
-            g.drawRect(x, y, width, height);
-            x += (width + 10);
+            barHeight = getBarHeight(bar, windowHeight, fontHeight);
+            y = windowHeight - barHeight - fontHeight;
+            drawBar(g, bar, x, y, width, barHeight);
+            x += xOffset;
         }
     }
 
@@ -107,6 +154,10 @@ public class BarChart extends JPanel {
 
     public synchronized void setDoubleParked(AtomicInteger doubleParked){
         this.doubleParked = doubleParked;
+    }
+
+    public synchronized void setSingleParked(AtomicInteger singleParked){
+        this.singleParked = singleParked;
     }
 
     public synchronized void setLookingForSpace(AtomicInteger lookingForSpace) {

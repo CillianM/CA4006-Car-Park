@@ -15,6 +15,7 @@ public class CarPark {
     private AtomicInteger gone = new AtomicInteger(0);
     private AtomicInteger spaces;
     private AtomicInteger doubleParked = new AtomicInteger(0);
+    private AtomicInteger singleParked = new AtomicInteger(0);
     private AtomicInteger lookingForSpace = new AtomicInteger(0);
     private AtomicInteger totalInCarPark = new AtomicInteger(0);
     private AtomicInteger entrances;
@@ -45,6 +46,7 @@ public class CarPark {
                 "Total in CarPark: " + totalInCarPark + " " +
                 "Spaces: " + spaces + " " +
                 "Double Parked: " + doubleParked + " " +
+                "Single Parked: " + singleParked + " " +
                 "Looking For Spaces: " + lookingForSpace + " " +
                 "Exits: " + exits + " " +
                 "Gone: " + gone);
@@ -56,6 +58,7 @@ public class CarPark {
             barChart.setGone(gone);
             barChart.setSpacesAvailable(spaces);
             barChart.setDoubleParked(doubleParked);
+            barChart.setSingleParked(singleParked);
             barChart.setLookingForSpace(lookingForSpace);
             barChart.setTotalInCarPark(totalInCarPark);
             barChart.setEntrance(entrances);
@@ -122,6 +125,8 @@ public class CarPark {
         spaces.set(spaces.get() - car.getSpace());
         if(car.getSpace() > 1){
             doubleParked.incrementAndGet();
+        } else {
+            singleParked.incrementAndGet();
         }
         lookingForSpace.decrementAndGet();
         printStatus();
@@ -133,6 +138,8 @@ public class CarPark {
         spaces.set(spaces.get() + car.getSpace());
         if(car.getSpace() > 1){
             doubleParked.decrementAndGet();
+        } else {
+            singleParked.decrementAndGet();
         }
         printStatus();
         updateGUI();
