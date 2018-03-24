@@ -3,12 +3,16 @@ package ie.dcu;
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CarPark {
 
     //The standard time it takes to travel through an entrance or exit with no problems
     private static final long BARRIER_TRAVEL_TIME = 500;
+
+    //The time a person will seek a space until getting fed up and exiting immediately without parking
+    private static final long FED_UP_TIME = 750;
 
     private BarChart barChart;
     private AtomicInteger outside;
@@ -18,6 +22,7 @@ public class CarPark {
     private AtomicInteger doubleParked = new AtomicInteger(0);
     private AtomicInteger singleParked = new AtomicInteger(0);
     private AtomicInteger seekingSpace = new AtomicInteger(0);
+    private AtomicInteger totalFedUp = new AtomicInteger(0);
     private AtomicInteger totalInCarPark = new AtomicInteger(0);
     private AtomicInteger entrances;
     private AtomicInteger exits;
@@ -49,6 +54,7 @@ public class CarPark {
                 "Double Parked: " + doubleParked + " " +
                 "Single Parked: " + singleParked + " " +
                 "Seeking Spaces: " + seekingSpace + " " +
+                "Total Fed Up: " + totalFedUp + " " +
                 "Exits: " + exits + " " +
                 "Undelayed Exit: " + undelayedExit + " " +
                 "Delayed Exit: " + delayedExit);
@@ -63,6 +69,7 @@ public class CarPark {
             barChart.setDoubleParked(doubleParked);
             barChart.setSingleParked(singleParked);
             barChart.setSeekingSpace(seekingSpace);
+            barChart.setTotalFedUp(totalFedUp);
             barChart.setTotalInCarPark(totalInCarPark);
             barChart.setEntrancesFree(entrances);
             barChart.setExitsFree(exits);
@@ -100,7 +107,7 @@ public class CarPark {
         }
     }
 
-    private void leaveCarpark(Car car) throws InterruptedException, InvocationTargetException {
+    void leaveCarpark(Car car) throws InterruptedException, InvocationTargetException {
 
         exitSem.acquire();
         exits.decrementAndGet();
@@ -121,22 +128,23 @@ public class CarPark {
     }
 
     private void takeSpace(Car car) throws InterruptedException, InvocationTargetException {
-//        while (spaces.get() < car.getSpace()) {
-//            car.setAttempts(car.getAttempts() - 1);
-//            if (car.getAttempts() <= 0) {
-//                //TODO implement giving up on parking
-//            }
-//            wait();
-//        }
-
-        //todo use tryAcquire to simulate giving up
-
-        spacesSem.acquire(car.getSpace());
-        spaces.set(spaces.get() - car.getSpace());
-        if(car.getSpace() > 1){
-            doubleParked.incrementAndGet();
+        //Search for a space
+        if(spacesSem.tryAcquire(car.getSpace(), FED_UP_TIME, TimeUnit.MILLISECONDS))
+        {
+            //Found a space
+            car.setGotToPark(true);
+            spaces.set(spaces.get() - car.getSpace());
+            if(car.getSpace() > 1){
+                doubleParked.incrementAndGet();
+            } else {
+                singleParked.incrementAndGet();
+            }
         } else {
-            singleParked.incrementAndGet();
+            //After failing to acquire the semaphore before the FED_UP_TIME ran out
+            //give up on trying to find a space and just leave
+            car.setGotToPark(false);
+            totalFedUp.incrementAndGet();
+
         }
         seekingSpace.decrementAndGet();
         printStatus();
@@ -153,8 +161,5 @@ public class CarPark {
         }
         printStatus();
         updateGUI();
-
-        car.setGotToPark(true);
-        leaveCarpark(car);
     }
 }

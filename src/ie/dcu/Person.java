@@ -19,7 +19,12 @@ public class Person extends Thread {
         try {
             carPark.enterCarpark(car);
             sleep((long) 1000 * random.nextInt(15));
-            carPark.leaveSpace(car);
+            if(car.isGotToPark()){
+                //If you got to park then vacate the space before leaving
+                carPark.leaveSpace(car);
+            }
+            carPark.leaveCarpark(car);
+
         } catch (InterruptedException | InvocationTargetException e) {
             e.printStackTrace();
         }

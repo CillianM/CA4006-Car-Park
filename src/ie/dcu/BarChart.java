@@ -9,13 +9,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BarChart extends JPanel {
     private final int TOTAL_SPACES;
     private final int TOTAL_CARS;
-    private final int NUM_OF_MULT_BARS = 2;
+    private final int NUM_OF_MULT_BARS = 3;
 
     private Map<String, Bar> bars =
             new LinkedHashMap<>();
     private Map<String, Bar> spacesMultiBar =
             new LinkedHashMap<>();
     private Map<String, Bar> exitedMultiBar =
+            new LinkedHashMap<>();
+    private Map<String, Bar> attemptedSeekMultiBar =
             new LinkedHashMap<>();
 
 
@@ -25,6 +27,7 @@ public class BarChart extends JPanel {
     private AtomicInteger doubleParked;
     private AtomicInteger singleParked;
     private AtomicInteger seekingSpace;
+    private AtomicInteger totalFedUp;
     private AtomicInteger totalInCarPark;
     private AtomicInteger exitsFree;
     private AtomicInteger undelayedExit;
@@ -41,6 +44,7 @@ public class BarChart extends JPanel {
         this.entrancesFree = new AtomicInteger(totalEntrances);
         this.totalInCarPark = new AtomicInteger(0);
         this.seekingSpace = new AtomicInteger(0);
+        this.totalFedUp = new AtomicInteger(0);
         this.exitsFree = new AtomicInteger(totalExits);
         this.undelayedExit = new AtomicInteger(0);
         this.delayedExit = new AtomicInteger(0);
@@ -50,11 +54,14 @@ public class BarChart extends JPanel {
         addBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
         addBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
 
+        //Attempted Seek multi-bar
+        addBar("Total Fed Up",Color.red, totalFedUp, attemptedSeekMultiBar);
+        addBar("Seeking Space",Color.orange, seekingSpace, attemptedSeekMultiBar);
+
         //Single Bars
         addBar("Going In", Color.lightGray, goingIn);
         addBar("Entrances Free", Color.green, entrancesFree);
         addBar("Total In CarPark", Color.blue, totalInCarPark);
-        addBar("Seeking Space",Color.orange, seekingSpace);
         addBar("Exits Free",Color.red, exitsFree);
 
         //Exited multi-bar
@@ -93,11 +100,14 @@ public class BarChart extends JPanel {
         updateBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
         updateBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
 
+        //Attempted Seek multi-bar
+        updateBar("Total Fed Up",Color.red, totalFedUp, attemptedSeekMultiBar);
+        updateBar("Seeking Space",Color.orange, seekingSpace, attemptedSeekMultiBar);
+
         //Single Bars
         updateBar("Going In", Color.lightGray, goingIn);
         updateBar("Entrances Free", Color.green, entrancesFree);
         updateBar("Total In CarPark", Color.blue, totalInCarPark);
-        updateBar("Seeking Space",Color.orange, seekingSpace);
         updateBar("Exits Free", Color.red, exitsFree);
 
         //Exited multi-bar
@@ -144,6 +154,10 @@ public class BarChart extends JPanel {
         drawMultiBar(g, spacesMultiBar, x, windowHeight, width, fontHeight);
         x += xOffset;
 
+        //Draw attempted seek multi-bar
+        drawMultiBar(g, attemptedSeekMultiBar, x, windowHeight, width, fontHeight);
+        x += xOffset;
+
         //Draw the single bars
         for (Bar bar : bars.values()) {
             barHeight = getBarHeight(bar, windowHeight, fontHeight);
@@ -183,6 +197,10 @@ public class BarChart extends JPanel {
 
     public synchronized void setSeekingSpace(AtomicInteger seekingSpace) {
         this.seekingSpace = seekingSpace;
+    }
+
+    public synchronized void setTotalFedUp(AtomicInteger totalFedUp) {
+        this.totalFedUp = totalFedUp;
     }
 
     public synchronized void setTotalInCarPark(AtomicInteger totalInCarPark) {
