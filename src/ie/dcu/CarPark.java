@@ -133,7 +133,12 @@ public class CarPark {
         {
             //Found a space
             car.setGotToPark(true);
-            spaces.set(spaces.get() - car.getSpace());
+
+            for(int i = 1; i <= car.getSpace(); i++){
+                //Iteratively decrement instead of using spaces.set() as
+                // decrements are atomic, whereas set is not
+                spaces.decrementAndGet();
+            }
             if(car.getSpace() > 1){
                 doubleParked.incrementAndGet();
             } else {
@@ -153,7 +158,11 @@ public class CarPark {
 
     void leaveSpace(Car car) throws InterruptedException, InvocationTargetException {
         spacesSem.release(car.getSpace());
-        spaces.set(spaces.get() + car.getSpace());
+        for(int i = 1; i <= car.getSpace(); i++){
+            //Iteratively increment instead of using spaces.set() as
+            // increments are atomic, whereas set is not
+            spaces.incrementAndGet();
+        }
         if(car.getSpace() > 1){
             doubleParked.decrementAndGet();
         } else {
