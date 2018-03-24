@@ -9,45 +9,64 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BarChart extends JPanel {
     private final int TOTAL_SPACES;
     private final int TOTAL_CARS;
+    private final int NUM_OF_MULT_BARS = 3;
 
     private Map<String, Bar> bars =
             new LinkedHashMap<>();
     private Map<String, Bar> spacesMultiBar =
             new LinkedHashMap<>();
+    private Map<String, Bar> exitedMultiBar =
+            new LinkedHashMap<>();
+    private Map<String, Bar> attemptedSeekMultiBar =
+            new LinkedHashMap<>();
 
 
     private AtomicInteger goingIn;
-    private AtomicInteger entrance;
+    private AtomicInteger entrancesFree;
     private AtomicInteger spacesAvailable;
     private AtomicInteger doubleParked;
     private AtomicInteger singleParked;
-    private AtomicInteger lookingForSpace;
+    private AtomicInteger seekingSpace;
+    private AtomicInteger totalFedUp;
     private AtomicInteger totalInCarPark;
-    private AtomicInteger exit;
-    private AtomicInteger gone;
+    private AtomicInteger exitsFree;
+    private AtomicInteger undelayedExit;
+    private AtomicInteger delayedExit;
 
 
-    BarChart(int totalCars, int totalSpaces, int entrances, int exits) {
+    BarChart(int totalCars, int totalSpaces, int totalEntrances, int totalExits) {
         this.TOTAL_CARS = totalCars;
         this.TOTAL_SPACES = totalSpaces;
         this.goingIn = new AtomicInteger(totalCars);
         this.spacesAvailable = new AtomicInteger(totalSpaces);
         this.singleParked = new AtomicInteger(0);
         this.doubleParked = new AtomicInteger(0);
-        this.entrance = new AtomicInteger(entrances);
+        this.entrancesFree = new AtomicInteger(totalEntrances);
         this.totalInCarPark = new AtomicInteger(0);
-        this.lookingForSpace = new AtomicInteger(0);
-        this.exit = new AtomicInteger(exits);
-        this.gone = new AtomicInteger(0);
-        addBar("Going In", Color.lightGray, goingIn);
-        addBar("Entrances Free", Color.green, entrance);
-        addBar("Total In CarPark", Color.blue, totalInCarPark);
+        this.seekingSpace = new AtomicInteger(0);
+        this.totalFedUp = new AtomicInteger(0);
+        this.exitsFree = new AtomicInteger(totalExits);
+        this.undelayedExit = new AtomicInteger(0);
+        this.delayedExit = new AtomicInteger(0);
+
+        //Spaces multi-bar
         addBar("Spaces Free", Color.cyan, spacesAvailable, spacesMultiBar);
         addBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
         addBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
-        addBar("Looking For Space",Color.orange, lookingForSpace);
-        addBar("Exits Free",Color.red, exit);
-        addBar("Gone",Color.black, gone);
+
+        //Attempted Seek multi-bar
+        addBar("Total Fed Up",Color.red, totalFedUp, attemptedSeekMultiBar);
+        addBar("Seeking Space",Color.orange, seekingSpace, attemptedSeekMultiBar);
+
+        //Single Bars
+        addBar("Going In", Color.lightGray, goingIn);
+        addBar("Entrances Free", Color.green, entrancesFree);
+        addBar("Total In CarPark", Color.blue, totalInCarPark);
+        addBar("Exits Free",Color.red, exitsFree);
+
+        //Exited multi-bar
+        addBar("Undelayed Exit",Color.black, undelayedExit, exitedMultiBar);
+        addBar("Delayed Exit", Color.gray, delayedExit, exitedMultiBar);
     }
 
     private void addBar(String label, Color color, AtomicInteger count, Map<String, Bar> barMap){
@@ -76,20 +95,29 @@ public class BarChart extends JPanel {
 
     public void update() {
         removeAll();
-        updateBar("Going In", Color.lightGray, goingIn);
-        updateBar("Entrances Free", Color.green, entrance);
-        updateBar("Total In CarPark", Color.blue, totalInCarPark);
+        //Spaces multi-bar
         updateBar("Spaces Free", Color.cyan, spacesAvailable, spacesMultiBar);
         updateBar("Single Parked", Color.pink, singleParked, spacesMultiBar);
         updateBar("Double Parked", Color.magenta, doubleParked, spacesMultiBar);
-        updateBar("Looking For Space",Color.orange, lookingForSpace);
-        updateBar("Exits Free", Color.red, exit);
-        updateBar("Gone", Color.black, gone);
+
+        //Attempted Seek multi-bar
+        updateBar("Total Fed Up",Color.red, totalFedUp, attemptedSeekMultiBar);
+        updateBar("Seeking Space",Color.orange, seekingSpace, attemptedSeekMultiBar);
+
+        //Single Bars
+        updateBar("Going In", Color.lightGray, goingIn);
+        updateBar("Entrances Free", Color.green, entrancesFree);
+        updateBar("Total In CarPark", Color.blue, totalInCarPark);
+        updateBar("Exits Free", Color.red, exitsFree);
+
+        //Exited multi-bar
+        updateBar("Undelayed Exit", Color.black, undelayedExit, exitedMultiBar);
+        updateBar("Delayed Exit", Color.gray, delayedExit, exitedMultiBar);
         repaint();
     }
 
     private int getBarHeight(Bar bar, int windowHeight, int fontHeight){
-        return (int) ((windowHeight - (2 * fontHeight)) * ((double) bar.getCount() / TOTAL_CARS));
+        return (int) ((windowHeight - (4 * fontHeight)) * ((double) bar.getCount() / TOTAL_CARS));
     }
 
     private void drawBar(Graphics g, Bar bar, int x, int y, int width, int barHeight){
@@ -114,16 +142,20 @@ public class BarChart extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int width = (getWidth() / (bars.size() + 1) - 2);
-        int xOffset = width + 10;
+        int width = (getWidth() / (bars.size() + NUM_OF_MULT_BARS) - 2);
+        int xOffset = width + 2;
         int windowHeight = getHeight();
         int fontHeight = g.getFontMetrics().getHeight();
         int x = 1;
         int y;
         int barHeight;
 
-        //Draw spaces multibar
+        //Draw spaces multi-bar
         drawMultiBar(g, spacesMultiBar, x, windowHeight, width, fontHeight);
+        x += xOffset;
+
+        //Draw attempted seek multi-bar
+        drawMultiBar(g, attemptedSeekMultiBar, x, windowHeight, width, fontHeight);
         x += xOffset;
 
         //Draw the single bars
@@ -133,6 +165,9 @@ public class BarChart extends JPanel {
             drawBar(g, bar, x, y, width, barHeight);
             x += xOffset;
         }
+
+        //Draw exited multi-bar
+        drawMultiBar(g, exitedMultiBar, x, windowHeight, width, fontHeight);
     }
 
     @Override
@@ -144,8 +179,8 @@ public class BarChart extends JPanel {
         this.goingIn = goingIn;
     }
 
-    public synchronized void setEntrance(AtomicInteger entrance) {
-        this.entrance = entrance;
+    public synchronized void setEntrancesFree(AtomicInteger entrancesFree) {
+        this.entrancesFree = entrancesFree;
     }
 
     public synchronized void setSpacesAvailable(AtomicInteger spacesAvailable) {
@@ -160,19 +195,27 @@ public class BarChart extends JPanel {
         this.singleParked = singleParked;
     }
 
-    public synchronized void setLookingForSpace(AtomicInteger lookingForSpace) {
-        this.lookingForSpace = lookingForSpace;
+    public synchronized void setSeekingSpace(AtomicInteger seekingSpace) {
+        this.seekingSpace = seekingSpace;
+    }
+
+    public synchronized void setTotalFedUp(AtomicInteger totalFedUp) {
+        this.totalFedUp = totalFedUp;
     }
 
     public synchronized void setTotalInCarPark(AtomicInteger totalInCarPark) {
         this.totalInCarPark = totalInCarPark;
     }
 
-    public synchronized void setExit(AtomicInteger exit) {
-        this.exit = exit;
+    public synchronized void setExitsFree(AtomicInteger exitsFree) {
+        this.exitsFree = exitsFree;
     }
 
-    public synchronized void setGone(AtomicInteger gone) {
-        this.gone = gone;
+    public synchronized void setUndelayedExit(AtomicInteger undelayedExit) {
+        this.undelayedExit = undelayedExit;
+    }
+
+    public synchronized void setDelayedExit(AtomicInteger delayedExit) {
+        this.delayedExit = delayedExit;
     }
 }
