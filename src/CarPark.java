@@ -1,5 +1,3 @@
-package ie.dcu;
-
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Semaphore;

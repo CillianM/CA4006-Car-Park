@@ -1,5 +1,3 @@
-package ie.dcu;
-
 public class Car {
     private int space;
     private boolean unlucky;

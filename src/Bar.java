@@ -1,5 +1,3 @@
-package ie.dcu;
-
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 

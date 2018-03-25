@@ -1,5 +1,3 @@
-package ie.dcu;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
 
